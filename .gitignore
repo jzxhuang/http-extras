@@ -1,0 +1,7 @@
+elm-stuff
+
+# Desktop Services Store on macOS
+.DS_Store
+
+# VS Code workspace settings
+.vscode/
