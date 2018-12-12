@@ -1,4 +1,16 @@
-module Http.Mock exposing (expectBytes, expectBytesResponse, expectJson, expectString, expectStringResponse, expectWhatever)
+module Http.Mock exposing (expectString, expectJson, expectBytes, expectWhatever, expectStringResponse, expectBytesResponse)
+
+{-| Mock an Http response from within Elm.
+
+
+# Mock
+
+@docs expectString, expectJson, expectBytes, expectWhatever, expectStringResponse, expectBytesResponse
+
+[http]: https://package.elm-lang.org/packages/elm/http/2.0.0
+[httpResponse]: https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Response
+
+-}
 
 import Bytes exposing (Bytes)
 import Bytes.Decode
