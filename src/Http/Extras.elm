@@ -1,15 +1,22 @@
 module Http.Extras exposing
-    ( expectRawString, expectRawBytes
-    , getBody, getHeaders, getMetadata, getStatusCode, getStatusText, getUrl, isSuccess
+    ( Request, generateQueryString, generateHeaders, State(..)
+    , expectRawString, expectRawBytes
     , responseToString, responseToJson, responseToBytes, responseToWhatever
+    , getBody, getHeaders, getMetadata, getStatusCode, getStatusText, getUrl, isSuccess
     )
 
-{-| Functions for more convenient and robust handling of Http responses.
-
-Working with the default Http library.
+{-| Convenience functions for working with the default Http library.
 
 
-# Expect
+# Requests
+
+@docs Request, generateQueryString, generateHeaders, State
+
+
+# Responses
+
+
+## Expect
 
 [`expectRawString`](#expectRawString) and [`expectRawBytes`](#expectRawBytes) are convenience functions for helping you build your own custom, advanced handlers for interpreting an Http response.
 These functions return a [`Http.Response`](httpResponse) wrapped in a Result, where the `Result` will _**always**_ be `Ok`. Handle the [`Http.Response`](httpResponse) however you'd like!
@@ -17,16 +24,16 @@ These functions return a [`Http.Response`](httpResponse) wrapped in a Result, wh
 @docs expectRawString, expectRawBytes
 
 
-# Convenience Functions for Http.Response
-
-Convenience functions for extracting information like the header, status code, url, etc. from a [`Http.Response](httpResponse) value.
-
-@docs getBody, getHeaders, getMetadata, getStatusCode, getStatusText, getUrl, isSuccess
-
-
-# Header
+## Transform
 
 @docs responseToString, responseToJson, responseToBytes, responseToWhatever
+
+
+## Working with Http.Response
+
+Convenience functions for extracting information like the header, status code, url, etc. from a [\`Http.Response](httpResponse) value.
+
+@docs getBody, getHeaders, getMetadata, getStatusCode, getStatusText, getUrl, isSuccess
 
 [http]: https://package.elm-lang.org/packages/elm/http/2.0.0
 [httpResponse]: https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Response
@@ -38,6 +45,38 @@ import Bytes.Decode
 import Dict
 import Http
 import Json.Decode
+
+
+type alias Request msg =
+    { method : String
+    , headers : List Http.Header
+    , url : String
+    , body : Http.Body
+    , expect : Http.Expect msg
+    , timeout : Maybe Float
+    , tracker : Maybe String
+    }
+
+
+type State body
+    = NotRequested
+    | Fetching
+    | Success body
+    | Error Http.Error
+
+
+
+-- Building a request
+
+
+generateQueryString : List ( String, String ) -> String
+generateQueryString queries =
+    "?" ++ (List.map (\( field, value ) -> field ++ "=" ++ value) queries |> String.join "&")
+
+
+generateHeaders : List ( String, String ) -> List Http.Header
+generateHeaders headers =
+    List.map (\( field, value ) -> Http.header field value) headers
 
 
 {-| -}
@@ -103,7 +142,7 @@ getMetadata res =
 
 getBody : Http.Response body -> Result String body
 getBody res =
-    Result.map 
+    Result.map
         (\( _, body ) -> body)
         (parseResponse res)
 
