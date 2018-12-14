@@ -1,23 +1,25 @@
 module Http.Extras exposing
-    ( Request, generateQueryString, generateHeaders, State(..)
+    ( Request, generateQuery, generateHeaders
     , expectRawString, expectRawBytes
     , responseToString, responseToJson, responseToBytes, responseToWhatever
-    , getBody, getHeaders, getMetadata, getStatusCode, getStatusText, getUrl, isSuccess
+    , getUrl, getStatusCode, getStatusText, getHeaders, getMetadata, getBody, isSuccess
     )
 
-{-| Convenience functions for working with the default Http library.
+{-| Convenience functions for creating HTTP requests and interpreting an HTTP response.
 
 
 # Requests
 
-Helpers for creating Http requests.
+Helpers for creating HTTP requests.
 
-@docs Request, generateQueryString, generateHeaders, State
+@docs Request, generateQuery, generateHeaders
 
 
 # Responses
 
-Helpers for working with an [`Http.Response`][httpResponse] value.
+Helpers for interpreting an [`Http.Response`][httpResponse] value.
+
+[httpResponse]: https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Response
 
 
 ## Expect
@@ -25,24 +27,36 @@ Helpers for working with an [`Http.Response`][httpResponse] value.
 [`expectRawString`](#expectRawString) and [`expectRawBytes`](#expectRawBytes) are convenience functions for helping you build your own custom, advanced handlers for interpreting an Http response.
 These functions return an [`Http.Response`][httpResponse] wrapped in a Result, where the `Result` will _**always**_ be `Ok`. Handle the [`Http.Response`][httpResponse] however you'd like!
 
+**Note:** These functions will likely be removed - they don't seem too useful.
+
 @docs expectRawString, expectRawBytes
 
 
 ## Transform
 
-Transform an [`Http.Response`][httpResponse] value into the respective `Result` that is returned in each `_expect_` function from [`Http`][http].
+Transform an [`Http.Response`][httpResponse] value into the respective `Result` that is returned in each `expect` function from [`Http`][http].
+
+[http]: https://package.elm-lang.org/packages/elm/http/2.0.0
+[httpResponse]: https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Response
 
 @docs responseToString, responseToJson, responseToBytes, responseToWhatever
 
 
 ## Getters
 
-Getters for extracting information like the header, status code, url, etc. from a [`Http.Response`][httpResponse] value.
+Convenience functions for extracting information like the header, status code, url, etc. from a [`Http.Response`][httpResponse] value.
+On an error, a short string will be returned describing why the error occurred. For example:
 
-@docs getBody, getHeaders, getMetadata, getStatusCode, getStatusText, getUrl, isSuccess
+    getStatusCode Http.Timeout_
+        == Err "Timeout"
 
-[http]: https://package.elm-lang.org/packages/elm/http/2.0.0
+These functions are primarily concerned with accessing the metadata of a response.
+So, these functions will return a successful `Result` if the response is `GoodStatus_` or `BadStatus_`.
+Otherwise, the `Result` will be an error.
+
 [httpResponse]: https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Response
+
+@docs getUrl, getStatusCode, getStatusText, getHeaders, getMetadata, getBody, isSuccess
 
 -}
 
@@ -51,9 +65,11 @@ import Bytes.Decode
 import Dict
 import Http
 import Json.Decode
+import Url.Builder
 
 
-{-| The type that needs to be passed into `[Http.request](https://package.elm-lang.org/packages/elm/http/2.0.0/Http#request)` It's never actually defined as a type in the default package, so this is just the type definition for it.
+{-| The type that needs to be passed into [`Http.request`](https://package.elm-lang.org/packages/elm/http/2.0.0/Http#request).
+It's never actually defined as a type in the default package, so this is just the type definition for it.
 -}
 type alias Request msg =
     { method : String
@@ -66,29 +82,38 @@ type alias Request msg =
     }
 
 
-{-| A custom type for helping keep track of the state of an Http request in your program's Model.
+{-| A custom type for helping keep track of the state of an HTTP request in your program's Model.
+
+Not sure if this will be included in the final version.
+
 -}
 type State success
     = NotRequested
     | Fetching
-    | Success ( success, Http.Metadata )
+    | Success success
     | Error Http.Error
 
 
-{-| Generate a query string to append to your URL.
+{-| Convenience function to generate a [percent-encoded](https://tools.ietf.org/html/rfc3986#section-2.1) query string from a list of `( String, String )`.
 
-    generateQueryString [ ( "foo", "abc" ), ( "bar", "xyz" ) ]
-        == "?foo=abc&bar=xyz"
+    generateQuery [ ( "foo", "abc 123" ), ( "bar", "xyz" ) ]
+        == "?foo=abc%20123&bar=xyz"
+
+**Note:** It seems that this function should not be a part of this library, and it would be more appropriate in something
+like Url.Extras. I only have this function here for now because it is something I use frequently...
 
 -}
-generateQueryString : List ( String, String ) -> String
-generateQueryString queries =
-    "?" ++ (List.map (\( field, value ) -> field ++ "=" ++ value) queries |> String.join "&")
+generateQuery : List ( String, String ) -> String
+generateQuery queries =
+    List.map (\( field, value ) -> Url.Builder.string field value) queries
+        |> Url.Builder.toQuery
 
 
-{-| Generate a list of Http headers.
+{-| Convenience function to generate a list of [`Http.Header`](https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Header)
+from a list of `( String, String )`.
 
-generateheaders [ ( "Max-Forwards", "10"), ( "Authorization", "Basic abc123" ) ]
+    generateHeaders [ ( "Max-Forwards", "10" ), ( "Authorization", "Basic pw123" ) ]
+        == [ Http.Header "Max-Forwards" "10", Http.Header "Authorization" "Basic pw123" ]
 
 -}
 generateHeaders : List ( String, String ) -> List Http.Header
@@ -116,7 +141,9 @@ expectRawBytes toMsg =
 -- Convenience Functions for Http.Response
 
 
-{-| -}
+{-| Note that this only tries to return the url from the metadata - it does not return the url if
+the response is `BadUrl_`
+-}
 getUrl : Http.Response body -> Result String String
 getUrl res =
     Result.map .url (getMetadata res)
@@ -140,7 +167,8 @@ getHeaders res =
     Result.map .headers (getMetadata res)
 
 
-{-| -}
+{-| Returns the status code if 200 <= status code < 300
+-}
 isSuccess : Http.Response body -> Result String Int
 isSuccess res =
     case getStatusCode res of
@@ -196,7 +224,6 @@ parseResponse res =
 
 
 -- Transformers
--- (Response body -> Result (Http.Error body) a)
 
 
 {-| -}
@@ -221,10 +248,6 @@ responseToBytes decoder responseBytes =
         responseBytes
 
 
-
--- This is basically like expectString! But for Bytes
-
-
 {-| -}
 responseToWhatever : Http.Response Bytes -> Result Http.Error ()
 responseToWhatever responseBytes =
@@ -232,7 +255,7 @@ responseToWhatever responseBytes =
 
 
 
--- Helper function for the transfomers
+-- Helper function for the Transfomers
 
 
 resolve : (body -> Result String a) -> Http.Response body -> Result Http.Error a

@@ -1,62 +1,64 @@
 module Http.Mock exposing (expectString, expectJson, expectBytes, expectWhatever, expectStringResponse, expectBytesResponse)
 
-{-| Mock an Http response from within Elm.
+{-| Mock an HTTP response from within Elm.
 
-Specify exactly what you'd like the response of an Http request to be. The actual resopnse of the Http request is ignored - the response will be exactly what you want to be mocked!
+Specify exactly what you'd like the response of an HTTP request to be.
+The actual response of the HTTP request is ignored - the response will be exactly what you want to be mocked!
 
 Here's are some examples of how this can be useful!
 
 
 # Testing your code
 
-Not sure how your code handles an Http request that results in a `Timeout`? Test it by mocking a Timeout response!
+Not sure how your code handles an HTTP request that results in a `Timeout`? Test it by mocking a Timeout response!
 
     import Http
     import Http.Mock
 
     type Msg
-        = MyMsg (Result Http.Error String)
+        = MyResponseHandler (Result Http.Error String)
 
     testTimeout =
         Http.get
             { url = "https://fakeurl.com"
-            , expect = Http.Mock.expectString Http.Timeout_ MyMsg
+            , expect = Http.Mock.expectString Http.Timeout_ MyResponseHandler
             }
 
-Note that your `Msg` and `update` logic don't change.
-The `expect` functions in Mock have the same return type as the `expect` functions in the default [`Http`][http] library, the only difference is that you specify exactly what the response is!
-It doesn't matter what type of request you make - here, we put in a dummy URL, as the response of the request is ignored.
+Your update logic doesn't change - mock a `Timeout` response and make sure your program handles it correctly!
+Notice that we put in a dummy URL here - It doesn't matter what type of request you make response of the request will be exactly what you specify.
 
 
 # Mocking an API
 
-Need to quickly mock an API locally? Don't waste time setting up a mock Http server - just mock the response from within Elm!
+Need to quickly mock an API locally? Don't waste time setting up a fake HTTP server for testing - just mock the response directly from within Elm!
 
     import Http
     import Http.Mock
 
     type Msg
-        = MyMsg (Result Http.Error String)
+        = MyResponseHandler (Result Http.Error String)
 
     -- This is our mocked response.
+    -- You would actually put metadata and a body!
     mockResponse =
         Http.GoodStatus_ <metadata> <body>
 
-    sendRequestLocal =
+    sendRequestWithMockedResponse =
         Http.get
             { url = "https://fakeurl.com"
-            , expect = Http.Mock.expectString mockResponse MyMsg
+            , expect = Http.Mock.expectString mockResponse MyResponseHandler
             }
+
+Again, your update logic should not change, and it doesn't matter what type of request you make - the response is discarded in favor of the mocked response.
 
 
 # Mock
 
-To-do
-
-@docs expectString, expectJson, expectBytes, expectWhatever, expectStringResponse, expectBytesResponse
+Very similar to the `expect` functions from the default [Http][http] package, but you specify exactly what you want the response to be.
 
 [http]: https://package.elm-lang.org/packages/elm/http/2.0.0
-[httpResponse]: https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Response
+
+@docs expectString, expectJson, expectBytes, expectWhatever, expectStringResponse, expectBytesResponse
 
 -}
 
@@ -89,10 +91,6 @@ expectBytes mockResponse toMsg decoder =
 expectWhatever : Http.Response Bytes -> (Result Http.Error () -> msg) -> Http.Expect msg
 expectWhatever mockResponse toMsg =
     expectBytesResponse mockResponse toMsg Http.Extras.responseToWhatever
-
-
-
--- Like Http.expectStringResponse, but we try and unbox the response first. i.e. `expect = mockExpectString MyMsg Http.expectJson`
 
 
 {-| -}
