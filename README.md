@@ -54,7 +54,7 @@ type Msg
 getRandomCatGif : List ( String, String ) -> Cmd Msg
 getRandomCatGif queries =
     Http.get
-        { url = "https://api.giphy.com/v1/gifs/random" ++ Http.Extras.generateQueryString queries
+        { url = "https://api.giphy.com/v1/gifs/random" ++ Http.Extras.listToQuery queries
         , expect = Http.Detailed.expectJson GotGif gifDecoder
         }
 

@@ -1,5 +1,5 @@
 module Http.Extras exposing
-    ( Request, generateQuery, generateHeaders
+    ( Request, listToQuery, listToHeaders
     , expectRawString, expectRawBytes
     , responseToString, responseToJson, responseToBytes, responseToWhatever
     , getUrl, getStatusCode, getStatusText, getHeaders, getMetadata, getBody, isSuccess
@@ -12,7 +12,7 @@ module Http.Extras exposing
 
 Helpers for creating HTTP requests.
 
-@docs Request, generateQuery, generateHeaders
+@docs Request, listToQuery, listToHeaders
 
 
 # Responses
@@ -96,15 +96,15 @@ type State success
 
 {-| Convenience function to generate a [percent-encoded](https://tools.ietf.org/html/rfc3986#section-2.1) query string from a list of `( String, String )`.
 
-    generateQuery [ ( "foo", "abc 123" ), ( "bar", "xyz" ) ]
+    listToQuery [ ( "foo", "abc 123" ), ( "bar", "xyz" ) ]
         == "?foo=abc%20123&bar=xyz"
 
 **Note:** It seems that this function should not be a part of this library, and it would be more appropriate in something
 like Url.Extras. I only have this function here for now because it is something I use frequently...
 
 -}
-generateQuery : List ( String, String ) -> String
-generateQuery queries =
+listToQuery : List ( String, String ) -> String
+listToQuery queries =
     List.map (\( field, value ) -> Url.Builder.string field value) queries
         |> Url.Builder.toQuery
 
@@ -112,12 +112,12 @@ generateQuery queries =
 {-| Convenience function to generate a list of [`Http.Header`](https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Header)
 from a list of `( String, String )`.
 
-    generateHeaders [ ( "Max-Forwards", "10" ), ( "Authorization", "Basic pw123" ) ]
+    listToHeaders [ ( "Max-Forwards", "10" ), ( "Authorization", "Basic pw123" ) ]
         == [ Http.Header "Max-Forwards" "10", Http.Header "Authorization" "Basic pw123" ]
 
 -}
-generateHeaders : List ( String, String ) -> List Http.Header
-generateHeaders headers =
+listToHeaders : List ( String, String ) -> List Http.Header
+listToHeaders headers =
     List.map (\( field, value ) -> Http.header field value) headers
 
 
