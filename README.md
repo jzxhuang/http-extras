@@ -2,9 +2,9 @@
 
 **WORK IN PROGRESS:** This project is a work in progress. It is not stable and subject to change at any time.
 
-HTTP-Extras helps you work with HTTP in Elm.
+HTTP-Extras helps you work with HTTP in Elm. It's made for version 2.0 of the [`Http`][http] package.
 
-It's made to be used with version 2.0 of the [`Http`][http] package.
+There are three separate modules that help you work with HTTP in different ways.
 
 ## Detailed
 
@@ -12,27 +12,27 @@ The default HTTP package discards the metadata and original body of an HTTP resp
 
 For example, maybe your server returns a useful error message that you want to try and decode, or you want to access the header of the response on a successful request.
 
-This module helps you create HTTP requests that return more detailed responses which keep this useful information around.
+With this module, create HTTP requests that return more detailed responses - responses that keep useful information around instead of throwing them away!
 
 ## Extras
 
-A collection of convenience and utility functions for creating HTTP requests and working with an HTTP response.
+A collection of convenience and utility functions for creating HTTP requests and working with HTTP responses.
 
 For example, there are helpers to...
 
-* Easily generate a query string or list of HTTP headers
+* Convert a list of Strings to a query string or list of HTTP headers
 * Extract information like the header, status code, url, etc. from an [`Http.Response`][httpResponse]
 * Transform an [`Http.Response`][httpResponse] into a `Result`
 
 ## Mock
 
-Easily mock an HTTP response directly from within Elm. Mock your API locally without having to deal with setting up a fake HTTP server.
+Easily mock the response of your API from within Elm. Don't bother setting up fake servers that mock responses.
 
-Very useful for testing that your code is robust enough to handle any type of response, including edge cases like a request that results in a `Timeout`.
+Very useful for testing that your code is robust enough to handle any type of response, including edge cases like a request that results in a `Timeout`. Mock responses locally without any hassle.
 
 ## Example
 
-Here's a complete example of how you might use all the modules in this package together to send HTTP requests and handle the responses.
+Here's a complete example of how you might use all the modules in this package together. For more detailed examples of each module, see the module's documentation!
 
 ```elm
 import Http
@@ -125,17 +125,17 @@ update msg model =
 
 In this example:
 
-* We use [`Detailed`](/Http-Detailed) to create requests with more detailed responses. In our `update` function, you can access these extra details like the metadata and use them as needed.
+* We use [`Detailed`](/Http-Detailed) to create HTTP requests that return more detailed responses. In our `update` function, you can access these extra details like the metadata and use them as needed.
 * The GIF request uses [`Extras`](/Http-Extras) to build a request that requires a query string
 * The Items request uses [`Mock`](/Http-Mock) to mock a `Timeout` response.
 
 ## Contributing
 
-Feedback and contributions are very welcome! Open an issue or pull request on Github as appropriate. If you're adding a new feature, make sure to give a use case demonstrating how it's useful.
+Feedback and contributions are very welcome! Open an issue or pull request on Github as appropriate.
 
 ## License
 
-TODO -- BSD-3
+HTTP-Extras is available under the BSD 3-Clause License. See LICENSE on the Github repo for details.
 
 [http]: https://package.elm-lang.org/packages/elm/http/2.0.0
 [httpResponse]: https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Response

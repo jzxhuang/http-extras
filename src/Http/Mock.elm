@@ -5,7 +5,7 @@ module Http.Mock exposing (expectString, expectJson, expectBytes, expectWhatever
 Specify exactly what you'd like the response of an HTTP request to be.
 The actual response of the HTTP request is ignored - the response will be exactly what you want to be mocked!
 
-Here's are some examples of how this can be useful!
+Here's are some examples of how this can be useful.
 
 
 # Testing your code
@@ -25,7 +25,7 @@ Not sure how your code handles an HTTP request that results in a `Timeout`? Test
             }
 
 Your update logic doesn't change - mock a `Timeout` response and make sure your program handles it correctly!
-Notice that we put in a dummy URL here - It doesn't matter what type of request you make response of the request will be exactly what you specify.
+Notice that we put in a dummy URL here - It doesn't matter what type of request you make, as the response of the request will be exactly what you specify.
 
 
 # Mocking an API
@@ -51,10 +51,13 @@ Need to quickly mock an API locally? Don't waste time setting up a fake HTTP ser
 
 Again, your update logic should not change, and it doesn't matter what type of request you make - the response is discarded in favor of the mocked response.
 
+When using this module, it would be a good idea to store all your mocked responses in a separate file.
+
 
 # Mock
 
-Very similar to the `expect` functions from the default [Http][http] package, but you specify exactly what you want the response to be.
+The API is designed so that usage of this module is almost identical to using the default [Http][http] package.
+Simply specify exactly what you want the response to be - everything else looks the same.
 
 [http]: https://package.elm-lang.org/packages/elm/http/2.0.0
 

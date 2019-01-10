@@ -1,6 +1,5 @@
 module Http.Extras exposing
-    ( Request, listToQuery, listToHeaders
-    , expectRawString, expectRawBytes
+    ( Request, listToHeaders, listToQuery
     , responseToString, responseToJson, responseToBytes, responseToWhatever
     , getUrl, getStatusCode, getStatusText, getHeaders, getMetadata, getBody, isSuccess
     )
@@ -12,7 +11,7 @@ module Http.Extras exposing
 
 Helpers for creating HTTP requests.
 
-@docs Request, listToQuery, listToHeaders
+@docs Request, listToHeaders, listToQuery
 
 
 # Responses
@@ -22,19 +21,9 @@ Helpers for interpreting an [`Http.Response`][httpResponse] value.
 [httpResponse]: https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Response
 
 
-## Expect
-
-[`expectRawString`](#expectRawString) and [`expectRawBytes`](#expectRawBytes) are convenience functions for helping you build your own custom, advanced handlers for interpreting an Http response.
-These functions return an [`Http.Response`][httpResponse] wrapped in a Result, where the `Result` will _**always**_ be `Ok`. Handle the [`Http.Response`][httpResponse] however you'd like!
-
-**Note:** These functions will likely be removed - they don't seem too useful.
-
-@docs expectRawString, expectRawBytes
-
-
 ## Transform
 
-Transform an [`Http.Response`][httpResponse] value into the respective `Result` that is returned in each `expect` function from [`Http`][http].
+Transform an [`Http.Response`][httpResponse] value into the respective `Result` that is returned in each `expect` function from the default [`Http`][http] package.
 
 [http]: https://package.elm-lang.org/packages/elm/http/2.0.0
 [httpResponse]: https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Response
@@ -94,22 +83,7 @@ type State success
     | Error Http.Error
 
 
-{-| Convenience function to generate a [percent-encoded](https://tools.ietf.org/html/rfc3986#section-2.1) query string from a list of `( String, String )`.
-
-    listToQuery [ ( "foo", "abc 123" ), ( "bar", "xyz" ) ]
-        == "?foo=abc%20123&bar=xyz"
-
-**Note:** It seems that this function should not be a part of this library, and it would be more appropriate in something
-like Url.Extras. I only have this function here for now because it is something I use frequently...
-
--}
-listToQuery : List ( String, String ) -> String
-listToQuery queries =
-    List.map (\( field, value ) -> Url.Builder.string field value) queries
-        |> Url.Builder.toQuery
-
-
-{-| Convenience function to generate a list of [`Http.Header`](https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Header)
+{-| Convenience function to generate a list of [`Http.Headers`](https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Header)
 from a list of `( String, String )`.
 
     listToHeaders [ ( "Max-Forwards", "10" ), ( "Authorization", "Basic pw123" ) ]
@@ -121,23 +95,48 @@ listToHeaders headers =
     List.map (\( field, value ) -> Http.header field value) headers
 
 
-{-| -}
-expectRawString : (Result Http.Error (Http.Response String) -> msg) -> Http.Expect msg
-expectRawString toMsg =
-    Http.expectStringResponse toMsg <|
-        \httpResponse ->
-            Ok httpResponse
+{-| Convenience function to generate a [percent-encoded](https://tools.ietf.org/html/rfc3986#section-2.1) query string from a list of `( String, String )`.
+
+    listToQuery [ ( "foo", "abc 123" ), ( "bar", "xyz" ) ]
+        == "?foo=abc%20123&bar=xyz"
+
+**Note:** A more appropriate place for this function would be a package like `Url.Extras`.
+However, such a package doesn't exist, and I use this function quite frequently, so I've included it in this package.
+
+-}
+listToQuery : List ( String, String ) -> String
+listToQuery queries =
+    List.map (\( field, value ) -> Url.Builder.string field value) queries
+        |> Url.Builder.toQuery
 
 
-{-| -}
-expectRawBytes : (Result Http.Error (Http.Response Bytes) -> msg) -> Http.Expect msg
-expectRawBytes toMsg =
-    Http.expectBytesResponse toMsg <|
-        \httpResponse ->
-            Ok httpResponse
+
+-- EXPECT FUNCTIONS WHICH ARE REMOVED
+{-
+   ## Expect
+
+   [`expectRawString`](#expectRawString) and [`expectRawBytes`](#expectRawBytes) are convenience functions for helping you build your own custom, advanced handlers for interpreting an Http response.
+   These functions return an [`Http.Response`][httpResponse] wrapped in a Result, where the `Result` will _**always**_ be `Ok`. Handle the [`Http.Response`][httpResponse] however you'd like!
+
+   **Note:** These functions will likely be removed - they don't seem too useful.
+
+   @docs expectRawString, expectRawBytes
+
+   {-| -}
+   expectRawString : (Result Http.Error (Http.Response String) -> msg) -> Http.Expect msg
+   expectRawString toMsg =
+       Http.expectStringResponse toMsg <|
+           \httpResponse ->
+               Ok httpResponse
 
 
-
+   {-| -}
+   expectRawBytes : (Result Http.Error (Http.Response Bytes) -> msg) -> Http.Expect msg
+   expectRawBytes toMsg =
+       Http.expectBytesResponse toMsg <|
+           \httpResponse ->
+               Ok httpResponse
+-}
 -- Convenience Functions for Http.Response
 
 

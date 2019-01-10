@@ -1,15 +1,18 @@
 module Http.Detailed exposing
-    ( expectString, expectJson, expectBytes, expectWhatever, Error(..)
+    ( Error(..), expectString, expectJson, expectBytes, expectWhatever
     , responseToString, responseToJson, responseToBytes, responseToWhatever
     )
 
-{-| Create HTTP requests with more detailed responses.
+{-| Create HTTP requests that return more detailed responses.
 
-The metadata and original body of an HTTP response are often very useful!
+The metadata and original body of an HTTP response are often very useful.
 Maybe your server returns a useful error message you'd like to try and decode,
 or you want to access the header of a successful response.
-
 Unfortunately, this information is discarded in the default [`Http`][http] package's responses.
+This module lets you create HTTP requests that keep that useful information around.
+
+The API is designed so that usage of this module is exactly the same as using the default [`Http`][http] library,
+with the only difference being that a more detailed `Result` is returned.
 
 [http]: https://package.elm-lang.org/packages/elm/http/2.0.0
 
@@ -34,11 +37,11 @@ just use this module's [`expect`](#expect) functions instead of the ones from th
         , expect = Http.Detailed.expectString GotText
         }
 
-If a successful response is received, the a `Tuple` containing the expected body and the metadata is returned.
-You might need to access a header from the metadata!
+If a successful response is received, a `Tuple` containing the expected body and the metadata is returned.
+You can access a header from the metadata if needed.
 
 In case of an error, a custom [`Error`](#Error) type is returned which keeps the metadata and body around if applicable,
-rather than discarding them. You might want to try and decode the error message!
+rather than discarding them. Maybe you want to try and decode the error message!
 
 Your update function might look a bit like this:
 
@@ -64,26 +67,23 @@ Your update function might look a bit like this:
 
 # Expect
 
-Exactly like the `expect` functions from [`Http`][http], but with a more detailed `Result`.
+Exactly like the `expect` functions from [`Http`][http] - usage of the API is the same.
+The difference is that the `Result` is more detailed.
 
-On a successful response, return a `Tuple` containing the expected body and the metadata.
-You might need to access a header from the metadata!
+  - On a successful response, returns a `Tuple` containing the expected body and the metadata.
+  - On an error, returns our custom [`Error`](#Error) type which keeps the metadata and body around if applicable.
 
-On an error, returns our custom [`Error`](#Error) type which keeps the metadata and body around if applicable.
-You might want to try and decode the error message!
-
-A modified version of the examples from the default [`Http`][http] package are included for each function,
-but you should be familiar with making an HTTP request using the default package first!
+A modified version of the examples from the default [`Http`][http] package are included for each function to help guide you in using this module.
 
 [http]: https://package.elm-lang.org/packages/elm/http/2.0.0
 
-@docs expectString, expectJson, expectBytes, expectWhatever, Error
+@docs Error, expectString, expectJson, expectBytes, expectWhatever
 
 
 # Transform
 
-Transform an [`Http.Response`][httpResponse] value into the respective `Result` that is returned in each [`expect`](#Expect) function.
-For example, this can be used with [`Mock`](../Http-Mock) to mock a response while using `Detailed` to handle responses:
+These functions transform an [`Http.Response`][httpResponse] value into the respective `Result` that is returned in each [`expect`](#Expect) function in this module.
+These are used to build your own `expect` functions. For example, this can be used with [`Mock`](../Http-Mock) to mock a response while using `Detailed` to handle responses:
 
     import Http
     import Http.Detailed
@@ -95,7 +95,7 @@ For example, this can be used with [`Mock`](../Http-Mock) to mock a response whi
         | ...
 
 
-    -- Mock a request
+    -- Mock a request, with a Detailed Result!
     Http.get
         { url = "https://fakeurl.com"
         , expect = Http.Mock.expectStringResponse Http.Timeout_ GotText Http.Detailed.responseToString
