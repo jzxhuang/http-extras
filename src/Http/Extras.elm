@@ -23,7 +23,17 @@ Helpers for interpreting an [`Http.Response`][httpResponse] value.
 
 ## Transform
 
-Transform an [`Http.Response`][httpResponse] value into the respective `Result` that is returned in each `expect` function from the default [`Http`][http] package.
+Transform an [`Http.Response`][httpResponse] value into the respective `Result` that is returned
+in each `expect` function from [`elm/http`][http]. Used for building custom `expect` functions.
+
+For example, you could replicate [`Http.expectString`](https://package.elm-lang.org/packages/elm/http/2.0.0/Http#expectString) like so:
+
+    import Http
+    import Http.Extras
+
+    expectString : (Result Http.Error String -> msg) -> Http.Expect msg
+    expectString toMsg =
+        Http.expectStringResponse toMsg Http.Extras.responseToString
 
 [http]: https://package.elm-lang.org/packages/elm/http/2.0.0
 [httpResponse]: https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Response
@@ -58,7 +68,10 @@ import Url.Builder
 
 
 {-| The type that needs to be passed into [`Http.request`](https://package.elm-lang.org/packages/elm/http/2.0.0/Http#request).
-It's never actually defined as a type in the default package, so this is just the type definition for it.
+It's never actually defined as a type in [`elm/http`][http], so this is just the type definition for it.
+
+[http]: https://package.elm-lang.org/packages/elm/http/2.0.0
+
 -}
 type alias Request msg =
     { method : String
@@ -84,7 +97,7 @@ type State success
 
 
 {-| Convenience function to generate a list of [`Http.Headers`](https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Header)
-from a list of `( String, String )`.
+from a `List ( String, String )`.
 
     listToHeaders [ ( "Max-Forwards", "10" ), ( "Authorization", "Basic pw123" ) ]
         == [ Http.Header "Max-Forwards" "10", Http.Header "Authorization" "Basic pw123" ]
@@ -95,13 +108,14 @@ listToHeaders headers =
     List.map (\( field, value ) -> Http.header field value) headers
 
 
-{-| Convenience function to generate a [percent-encoded](https://tools.ietf.org/html/rfc3986#section-2.1) query string from a list of `( String, String )`.
+{-| Convenience function to generate a [percent-encoded](https://tools.ietf.org/html/rfc3986#section-2.1)
+query string from a `List ( String, String )`.
 
     listToQuery [ ( "foo", "abc 123" ), ( "bar", "xyz" ) ]
         == "?foo=abc%20123&bar=xyz"
 
-**Note:** A more appropriate place for this function would be a package like `Url.Extras`.
-However, such a package doesn't exist, and I use this function quite frequently, so I've included it in this package.
+**Note:** A more appropriate place for this function would probably be a package like `Url.Extras`.
+However, such a package doesn't exist, and I use this function quite frequently, so I've included it here.
 
 -}
 listToQuery : List ( String, String ) -> String

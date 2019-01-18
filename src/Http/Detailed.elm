@@ -8,10 +8,10 @@ module Http.Detailed exposing
 The metadata and original body of an HTTP response are often very useful.
 Maybe your server returns a useful error message you'd like to try and decode,
 or you want to access the header of a successful response.
-Unfortunately, this information is discarded in the default [`Http`][http] package's responses.
+Unfortunately, this information is discarded in the responses in [`elm/http`][http].
 This module lets you create HTTP requests that keep that useful information around.
 
-The API is designed so that usage of this module is exactly the same as using the default [`Http`][http] library,
+The API is designed so that usage of this module is exactly the same as using [`elm/http`][http],
 with the only difference being that a more detailed `Result` is returned.
 
 [http]: https://package.elm-lang.org/packages/elm/http/2.0.0
@@ -25,13 +25,10 @@ just use this module's [`expect`](#expect) functions instead of the ones from th
     import Http
     import Http.Detailed
 
-
     type Msg
         = GotText (Result (Http.Detailed.Error String) ( String, Http.Metadata ))
         | ...
 
-
-    -- Send a request
     Http.get
         { url = "https://elm-lang.org/assets/public-opinion.txt"
         , expect = Http.Detailed.expectString GotText
@@ -67,13 +64,13 @@ Your update function might look a bit like this:
 
 # Expect
 
-Exactly like the `expect` functions from [`Http`][http] - usage of the API is the same.
+Exactly like the `expect` functions from [`elm/http`][http] - usage of the API is the same.
 The difference is that the `Result` is more detailed.
 
   - On a successful response, returns a `Tuple` containing the expected body and the metadata.
   - On an error, returns our custom [`Error`](#Error) type which keeps the metadata and body around if applicable.
 
-A modified version of the examples from the default [`Http`][http] package are included for each function to help guide you in using this module.
+A modified version of the examples from [`elm/http`][http] are included for each function to help guide you in using this module.
 
 [http]: https://package.elm-lang.org/packages/elm/http/2.0.0
 
@@ -82,8 +79,21 @@ A modified version of the examples from the default [`Http`][http] package are i
 
 # Transform
 
-These functions transform an [`Http.Response`][httpResponse] value into the respective `Result` that is returned in each [`expect`](#Expect) function in this module.
-These are used to build your own `expect` functions. For example, this can be used with [`Mock`](../Http-Mock) to mock a response while using `Detailed` to handle responses:
+These functions transform an [`Http.Response`][httpResponse] value into the detailed `Result` that is returned in each [`expect`](#Expect) function in this module.
+You can use these to build your own `expect` functions.
+
+For example, to create [`Http.Detailed.expectJson`](#expectJson):
+
+    import Http
+    import Http.Detailed
+    import json.Decode
+
+
+    expectJson : (Result (Http.Detailed.Error String) ( a, Http.Metadata ) -> msg) -> Json.Decode.Decoder a -> Http.Expect msg
+    expectJson toMsg decoder =
+        Http.expectStringResponse toMsg (responseToJson decoder)
+
+Use this with [`Mock`](../Http-Mock) to mock a request with a detailed response!
 
     import Http
     import Http.Detailed
@@ -96,6 +106,7 @@ These are used to build your own `expect` functions. For example, this can be us
 
 
     -- Mock a request, with a Detailed Result!
+
     Http.get
         { url = "https://fakeurl.com"
         , expect = Http.Mock.expectStringResponse Http.Timeout_ GotText Http.Detailed.responseToString

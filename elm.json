@@ -1,9 +1,9 @@
 {
     "type": "package",
     "name": "jzxhuang/http-extras",
-    "summary": "HTTP-Extras helps you work with HTTP in Elm",
+    "summary": "Improved HTTP - detailed responses, convenience functions, and API mocking.",
     "license": "BSD-3-Clause",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "exposed-modules": [
         "Http.Detailed",
         "Http.Extras",
