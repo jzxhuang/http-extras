@@ -121,23 +121,14 @@ Use this with [`Mock`](../Http-Mock) to mock a request with a detailed response!
 
 import Bytes exposing (Bytes)
 import Bytes.Decode
-import Dict
 import Http
 import Json.Decode
-
-
-
--- type alias Success expected original =
---     { metadata : Http.Metadata
---     , body : expected
---     , originalBody : original
---     }
 
 
 {-| Our custom error type. Similar to [`Http.Error`][httpError], but keeps the metadata and body around
 in `BadStatus` and `BadBody` rather than discarding them. Maybe your API gives a useful error message you want to decode!
 
-The type of the `body` depends on which `expect` function you use.
+`body` can be either `String` or `Bytes`, depending on which `expect` function you use.
 
   - [`expectJson`](#expectJson) and [`expectString`](#expectJson) will return a `String` body
   - [`expectWhatever`](#expectWhatever) and [`expectBytes`](#expectBytes) will return a `Bytes` body.
@@ -157,18 +148,6 @@ type Error body
 
 
 -- Expect
-
-
-{-| A custom type for helping keep track of the state of an HTTP request in your program's Model.
-
-Not sure if this will be included in the final release
-
--}
-type State err success
-    = NotRequested
-    | Fetching
-    | Success ( success, Http.Metadata )
-    | Error (Error err)
 
 
 {-| Expect the response body to be a `String`.
@@ -346,3 +325,11 @@ resolve toResult response =
 
         Http.GoodStatus_ metadata body ->
             Result.mapError (BadBody metadata body) (toResult ( metadata, body ))
+
+
+
+-- type alias Success expected original =
+--     { metadata : Http.Metadata
+--     , body : expected
+--     , originalBody : original
+--     }

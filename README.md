@@ -1,6 +1,6 @@
-# HTTP-Extras
+# http-extras
 
-Three modules to improve how you work with HTTP in Elm. More detailed responses, convenience functions, and API mocking.
+Three modules to help you work with HTTP in Elm. More detailed responses, convenience functions, and API mocking.
 
 Made for use with version **2.0+** of [`elm/http`][http].
 

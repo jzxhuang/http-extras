@@ -2,6 +2,7 @@ module Http.Extras exposing
     ( Request, listToHeaders, listToQuery
     , responseToString, responseToJson, responseToBytes, responseToWhatever
     , getUrl, getStatusCode, getStatusText, getHeaders, getMetadata, getBody, isSuccess
+    , State(..)
     )
 
 {-| Convenience functions for creating HTTP requests and interpreting an HTTP response.
@@ -57,6 +58,11 @@ Otherwise, the `Result` will be an error.
 
 @docs getUrl, getStatusCode, getStatusText, getHeaders, getMetadata, getBody, isSuccess
 
+
+# Miscellaneous
+
+@docs State
+
 -}
 
 import Bytes exposing (Bytes)
@@ -82,18 +88,6 @@ type alias Request msg =
     , timeout : Maybe Float
     , tracker : Maybe String
     }
-
-
-{-| A custom type for helping keep track of the state of an HTTP request in your program's Model.
-
-Not sure if this will be included in the final version.
-
--}
-type State success
-    = NotRequested
-    | Fetching
-    | Success success
-    | Error Http.Error
 
 
 {-| Convenience function to generate a list of [`Http.Headers`](https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Header)
@@ -125,32 +119,6 @@ listToQuery queries =
 
 
 
--- EXPECT FUNCTIONS WHICH ARE REMOVED
-{-
-   ## Expect
-
-   [`expectRawString`](#expectRawString) and [`expectRawBytes`](#expectRawBytes) are convenience functions for helping you build your own custom, advanced handlers for interpreting an Http response.
-   These functions return an [`Http.Response`][httpResponse] wrapped in a Result, where the `Result` will _**always**_ be `Ok`. Handle the [`Http.Response`][httpResponse] however you'd like!
-
-   **Note:** These functions will likely be removed - they don't seem too useful.
-
-   @docs expectRawString, expectRawBytes
-
-   {-| -}
-   expectRawString : (Result Http.Error (Http.Response String) -> msg) -> Http.Expect msg
-   expectRawString toMsg =
-       Http.expectStringResponse toMsg <|
-           \httpResponse ->
-               Ok httpResponse
-
-
-   {-| -}
-   expectRawBytes : (Result Http.Error (Http.Response Bytes) -> msg) -> Http.Expect msg
-   expectRawBytes toMsg =
-       Http.expectBytesResponse toMsg <|
-           \httpResponse ->
-               Ok httpResponse
--}
 -- Convenience Functions for Http.Response
 
 
@@ -220,7 +188,7 @@ parseResponse : Http.Response body -> Result String ( Http.Metadata, body )
 parseResponse res =
     case res of
         Http.BadUrl_ url ->
-            Err "Bad Url"
+            Err ("Bad Url: " ++ url)
 
         Http.Timeout_ ->
             Err "Timeout"
@@ -288,3 +256,72 @@ resolve toResult response =
 
         Http.GoodStatus_ _ body ->
             Result.mapError Http.BadBody (toResult body)
+
+
+
+-- Miscellaneous
+
+
+{-| A custom type for keeping track of the state of a HTTP requests in your program's Model. This is just a suggested pattern
+to use in your development. It's included primarily for my own convenience - here's an example of how it would be used.
+
+    type alias Model =
+        { apiCats : State ( CatsResponseType, Http.Metadata ) (Http.Detailed.Error String)
+        }
+
+    type Msg =
+        APICatsResponse
+        | ...
+
+    init =
+        ( { apiCats = NotRequested }, Cmd.none )
+
+    update msg model =
+        case msg of
+            APICatsResponse httpResponse ->
+                case httpResponse of
+                    Ok (response, metadata) ->
+                        ( { model | apiCats = Success (response, metadata) }
+                        , Cmd.none )
+
+                    Err httpError ->
+                        ( { model | apiCats = Error httpError }
+                        , Cmd.none )
+
+        ...
+
+-}
+type State success error
+    = NotRequested
+    | Fetching
+    | Success success
+    | Error error
+
+
+
+-- EXPECT FUNCTIONS WHICH ARE REMOVED
+{-
+   ## Expect
+
+   [`expectRawString`](#expectRawString) and [`expectRawBytes`](#expectRawBytes) are convenience functions for helping you build your own custom, advanced handlers for interpreting an Http response.
+   These functions return an [`Http.Response`][httpResponse] wrapped in a Result, where the `Result` will _**always**_ be `Ok`. Handle the [`Http.Response`][httpResponse] however you'd like!
+
+   **Note:** These functions will likely be removed - they don't seem too useful.
+
+   @docs expectRawString, expectRawBytes
+
+   {-| -}
+   expectRawString : (Result Http.Error (Http.Response String) -> msg) -> Http.Expect msg
+   expectRawString toMsg =
+       Http.expectStringResponse toMsg <|
+           \httpResponse ->
+               Ok httpResponse
+
+
+   {-| -}
+   expectRawBytes : (Result Http.Error (Http.Response Bytes) -> msg) -> Http.Expect msg
+   expectRawBytes toMsg =
+       Http.expectBytesResponse toMsg <|
+           \httpResponse ->
+               Ok httpResponse
+-}
