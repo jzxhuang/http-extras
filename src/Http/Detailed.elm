@@ -156,7 +156,7 @@ type Error body
     import Http.Detailed
 
     type Msg
-        = GotText (Result (Http.Detailed.Error String) String)
+        = GotText (Result (Http.Detailed.Error String) ( String, Http.Metadata ))
 
     getPublicOpinion : Cmd Msg
     getPublicOpinion =
@@ -182,7 +182,7 @@ expectString toMsg =
     import Json.Decode exposing (Decoder, field, string)
 
     type Msg
-        = GotGif (Result (Http.Detailed.Error String) String)
+        = GotGif (Result (Http.Detailed.Error String) ( String, Http.Metadata ))
 
     getRandomCatGif : Cmd Msg
     getRandomCatGif =
@@ -213,7 +213,7 @@ expectJson toMsg decoder =
     import Http.Detailed
 
     type Msg
-        = GotData (Result (Http.Detailed.Error Bytes) Data)
+        = GotData (Result (Http.Detailed.Error Bytes) ( Data, Http.Metadata ))
 
     getData : Cmd Msg
     getData =

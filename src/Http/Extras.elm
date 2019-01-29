@@ -103,7 +103,7 @@ listToHeaders headers =
 
 
 {-| Convenience function to generate a [percent-encoded](https://tools.ietf.org/html/rfc3986#section-2.1)
-query string from a `List ( String, String )`.
+query string from a `List ( String, String )`. The string includes the `?` at the beginning.
 
     listToQuery [ ( "foo", "abc 123" ), ( "bar", "xyz" ) ]
         == "?foo=abc%20123&bar=xyz"
