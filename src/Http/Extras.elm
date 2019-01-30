@@ -290,6 +290,17 @@ to use in your development. It's included primarily for my own convenience - her
 
         ...
 
+**Note:** It's been brought to my attention that this is the almost the exact same thing as the popular [RemoteData](https://package.elm-lang.org/packages/krisajenkins/remotedata/latest/) -
+when I created this package, I had never heard about RemoteData, yet I had been using the same design pattern.
+
+I will leave this type here to avoid breaking API changes, but I would recommend checking out RemoteData -
+it integrates fairly easily with this package. It offers a lot of handy helper functions too!
+
+To replicate their `WebData` type, you would use something like so:
+
+    type alias WebDataDetailed err success =
+        RemoteData (Http.Detailed.Error err) success
+
 -}
 type State success error
     = NotRequested

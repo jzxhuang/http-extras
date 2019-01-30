@@ -241,17 +241,17 @@ expectBytes toMsg decoder =
 {-| Expect the response body to be whatever. It does not matter. Ignore it!
 
     import Http
-    import Http.Extras
+    import Http.Detailed
 
     type Msg
-        = Uploaded (Result (Http.Extras.Error Bytes) ())
+        = Uploaded (Result (Http.Detailed.Error Bytes) ())
 
     upload : File -> Cmd Msg
     upload file =
         Http.post
             { url = "/upload"
             , body = Http.fileBody file
-            , expect = Http.Extras.expectWhatever Uploaded
+            , expect = Http.Detailed.expectWhatever Uploaded
             }
 
 The server may be giving back a response body, but we do not care about it.
