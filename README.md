@@ -8,7 +8,7 @@ Made for use with version **2.0+** of [`elm/http`][http].
 
 [`elm/http`][http] discards the metadata and original body of an HTTP response, even though they are often useful.
 
-For example, maybe your server returns a useful error message that you want to try and decode, or you want to access the header of the response on a successful request.
+For example, maybe your server returns a useful error message that you want to try and decode, or store an auth token in the header of a response.
 
 This module lets you create HTTP requests that return more detailed responses - responses that keep useful information around instead of throwing them away!
 
@@ -41,8 +41,8 @@ import Json.Decode exposing (Decoder, field, string, list)
 
 
 type Msg
-    = GotGif (Result (Http.Detailed.Error String) ( String, Http.Metadata ))
-    | GotItems (Result (Http.Detailed.Error String) ( List String, Http.Metadata ))
+    = GotGif (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
+    | GotItems (Result (Http.Detailed.Error String) ( Http.Metadata, List String ))
 
 
 -- Build a request with query parameters and a detailed response
@@ -90,19 +90,19 @@ update msg model =
     case msg of
         GotGif detailedResponse ->
             case detailedResponse of
-                Ok ( gif, metadata ) ->
+                Ok ( metadata, gif ) ->
                     -- Success! Do something with the metadata if you need
 
                 Err error ->
                     case error of
-                        Http.Detailed.BadStatus metadata body statusCode ->
+                        Http.Detailed.BadStatus metadata body ->
                             -- Maybe the error message is useful and you want to try and decode the body
 
                         ...
 
         GotItems detailedResponse ->
             case detailedResponse of
-                Ok ( items, metadata ) ->
+                Ok ( metadata, items ) ->
                     -- Success! Do something with the metadata if you need
 
                 Err error ->
