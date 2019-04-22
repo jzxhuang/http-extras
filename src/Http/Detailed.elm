@@ -4,7 +4,13 @@ module Http.Detailed exposing
     , responseToString, responseToJson, responseToBytes, responseToWhatever
     )
 
-{-| Create HTTP requests that return more detailed responses.
+{-| **Create HTTP requests that return more detailed responses.**
+
+_I wrote a [guide explaining how to extract detailed information from HTTP responses in Elm,][Going Beyond 200 OK]
+both with and without this package. Giving it a read might help you better understand
+the motivation and use cases behind this module!_
+
+---
 
 The metadata and original body of an HTTP response are often very useful.
 Maybe your server returns a useful error message you'd like to try and decode,
@@ -17,6 +23,7 @@ The API is designed so that usage of this module is exactly the same as using [`
 with the only difference being that a more detailed `Result` is returned.
 
 [http]: https://package.elm-lang.org/packages/elm/http/2.0.0
+[Going Beyond 200 OK]: https://medium.com/@jzxhuang/going-beyond-200-ok-a-guide-to-detailed-http-responses-in-elm-6ddd02322e
 
 
 # Example
@@ -99,7 +106,7 @@ For example, to create [`Http.Detailed.expectJson`](#expectJson):
     import json.Decode
 
 
-    expectJson : (Result (Http.Detailed.Error String) ( a, Http.Metadata ) -> msg) -> Json.Decode.Decoder a -> Http.Expect msg
+    expectJson : (Result (Http.Detailed.Error String) ( Http.Metadata, a ) -> msg) -> Json.Decode.Decoder a -> Http.Expect msg
     expectJson toMsg decoder =
         Http.expectStringResponse toMsg (responseToJson decoder)
 
@@ -111,7 +118,7 @@ Use this with [`Mock`](../Http-Mock) to mock a request with a detailed response!
 
 
     type Msg
-        = GotText (Result (Http.Detailed.Error String) ( String, Http.Metadata ))
+        = GotText (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
         | ...
 
 
@@ -166,7 +173,7 @@ type Error body
     import Http.Detailed
 
     type Msg
-        = GotText (Result (Http.Detailed.Error String) ( String, Http.Metadata ))
+        = GotText (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
 
     getPublicOpinion : Cmd Msg
     getPublicOpinion =
@@ -192,7 +199,7 @@ expectString toMsg =
     import Json.Decode exposing (Decoder, field, string)
 
     type Msg
-        = GotGif (Result (Http.Detailed.Error String) ( String, Http.Metadata ))
+        = GotGif (Result (Http.Detailed.Error String) ( Http.Metadata, String ))
 
     getRandomCatGif : Cmd Msg
     getRandomCatGif =
@@ -223,7 +230,7 @@ expectJson toMsg decoder =
     import Http.Detailed
 
     type Msg
-        = GotData (Result (Http.Detailed.Error Bytes) ( Data, Http.Metadata ))
+        = GotData (Result (Http.Detailed.Error Bytes) ( Http.Metadata, Data ))
 
     getData : Cmd Msg
     getData =
@@ -234,7 +241,7 @@ expectJson toMsg decoder =
 
     dataDecoder : Bytes.Decode.Decoder Data
 
-    -- This is a Bytes decoder ...
+    -- This is a Bytes decoder (not implemented)...
 
 On success, return the a tuple containing the metadata and the decoded body. On error, return our custom [`Error`](#Error) type.
 
@@ -398,11 +405,3 @@ resolve toResult response =
 
         Http.GoodStatus_ metadata body ->
             Result.mapError (BadBody metadata body) (toResult ( metadata, body ))
-
-
-
--- type alias Success expected original =
---     { metadata : Http.Metadata
---     , body : expected
---     , originalBody : original
---     }

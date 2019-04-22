@@ -12,6 +12,8 @@ For example, maybe your server returns a useful error message that you want to t
 
 This module lets you create HTTP requests that return more detailed responses - responses that keep useful information around instead of throwing them away!
 
+_I wrote a [guide explaining how to extract detailed information from HTTP responses in Elm,][Going Beyond 200 OK] both with and without this package. Giving it a read might help you better understand the motivation and use cases behind this module!_
+
 ## Extras
 
 A collection of convenience and utility functions for creating HTTP requests and working with HTTP responses.
@@ -133,3 +135,4 @@ HTTP-Extras is available under the [BSD-3-Clause License][bsd]. See LICENSE on t
 [http]: https://package.elm-lang.org/packages/elm/http/2.0.0
 [httpResponse]: https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Response
 [bsd]: https://opensource.org/licenses/BSD-3-Clause
+[Going Beyond 200 OK]: https://medium.com/@jzxhuang/going-beyond-200-ok-a-guide-to-detailed-http-responses-in-elm-6ddd02322e
