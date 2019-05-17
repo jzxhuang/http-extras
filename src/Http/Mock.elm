@@ -1,11 +1,19 @@
 module Http.Mock exposing (expectString, expectJson, expectBytes, expectWhatever, expectStringResponse, expectBytesResponse)
 
-{-| Mock an HTTP response from within Elm.
+{-| **Mock an HTTP response from within Elm.**
+
+_I wrote a [guide on HTTP mocking in Elm,][Oh the Mockery]
+both with and without this package. Giving it a read might help you better understand
+the motivation and use cases behind this module!_
+
+---
 
 Specify exactly what you'd like the response of an HTTP request to be.
 The actual response of the HTTP request is ignored - the response will be exactly what you want to be mocked!
 
 Here's some ways this can be useful.
+
+[Oh the Mockery]: https://medium.com/@jzxhuang/oh-the-mockery-a-guide-to-http-mocking-in-elm-f625c2a56c9f
 
 
 # Testing your code

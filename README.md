@@ -30,6 +30,8 @@ Easily mock the response of your API from within Elm. Don't bother setting up fa
 
 Very useful for testing your code. Make sure it's robust enough to handle any type of response, including edge cases like a request that results in a `Timeout`.
 
+_I wrote a [guide discussing HTTP mocking in Elm][Oh the mockery], both with and without this package. Giving it a read might help you better understand the motivation and use cases behind this module!_
+
 ## Example
 
 Here's a complete example of how you might use all the modules in this package together. See each module's documentation for more specific examples!
@@ -136,3 +138,4 @@ HTTP-Extras is available under the [BSD-3-Clause License][bsd]. See LICENSE on t
 [httpResponse]: https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Response
 [bsd]: https://opensource.org/licenses/BSD-3-Clause
 [Going Beyond 200 OK]: https://medium.com/@jzxhuang/going-beyond-200-ok-a-guide-to-detailed-http-responses-in-elm-6ddd02322e
+[Oh the Mockery]: https://medium.com/@jzxhuang/oh-the-mockery-a-guide-to-http-mocking-in-elm-f625c2a56c9f

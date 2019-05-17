@@ -5,7 +5,7 @@ module Http.Extras exposing
     , State(..)
     )
 
-{-| Convenience functions for creating HTTP requests and interpreting an HTTP response.
+{-| **Convenience functions for creating HTTP requests and interpreting an HTTP response.**
 
 
 # Requests
