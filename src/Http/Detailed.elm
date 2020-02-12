@@ -1,7 +1,7 @@
 module Http.Detailed exposing
     ( Error(..), expectString, expectJson, expectBytes, expectWhatever
     , Success, expectStringRecord, expectJsonRecord, expectBytesRecord
-    , responseToString, responseToJson, responseToBytes, responseToWhatever
+    , responseToString, responseToJson, responseToBytes, responseToWhatever, responseToStringRecord, responseToJsonRecord, responseToBytesRecord
     )
 
 {-| **Create HTTP requests that return more detailed responses.**
@@ -132,12 +132,13 @@ Use this with [`Mock`](../Http-Mock) to mock a request with a detailed response!
 [http]: https://package.elm-lang.org/packages/elm/http/2.0.0
 [httpResponse]: https://package.elm-lang.org/packages/elm/http/2.0.0/Http#Response
 
-@docs responseToString, responseToJson, responseToBytes, responseToWhatever
+@docs responseToString, responseToJson, responseToBytes, responseToWhatever, responseToStringRecord, responseToJsonRecord, responseToBytesRecord
 
 -}
 
 import Bytes exposing (Bytes)
 import Bytes.Decode
+import Constants
 import Http
 import Json.Decode
 
@@ -342,7 +343,7 @@ responseToBytes : Bytes.Decode.Decoder a -> Http.Response Bytes -> Result (Error
 responseToBytes decoder responseBytes =
     resolve
         (\( metadata, body ) ->
-            Result.fromMaybe "Error decoding bytes"
+            Result.fromMaybe Constants.bytesErrorMessage
                 (Bytes.Decode.decode (Bytes.Decode.map (\res -> ( metadata, res )) decoder) body)
         )
         responseBytes
@@ -378,7 +379,7 @@ responseToBytesRecord : Bytes.Decode.Decoder a -> Http.Response Bytes -> Result 
 responseToBytesRecord decoder responseBytes =
     resolve
         (\( metadata, body ) ->
-            Result.fromMaybe "Error decoding bytes"
+            Result.fromMaybe Constants.bytesErrorMessage
                 (Bytes.Decode.decode (Bytes.Decode.map (\res -> Success metadata res) decoder) body)
         )
         responseBytes
