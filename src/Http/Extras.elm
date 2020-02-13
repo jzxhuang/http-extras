@@ -69,6 +69,7 @@ import Bytes exposing (Bytes)
 import Bytes.Decode
 import Dict
 import Http
+import Http.Constants
 import Json.Decode
 import Url.Builder
 
@@ -161,7 +162,7 @@ isSuccess res =
                 Ok code
 
             else
-                Err <| "Bad status: " ++ String.fromInt code
+                Err <| Http.Constants.badStatusCodeErrorMessage code
 
 
 {-| -}
@@ -188,13 +189,13 @@ parseResponse : Http.Response body -> Result String ( Http.Metadata, body )
 parseResponse res =
     case res of
         Http.BadUrl_ url ->
-            Err ("Bad Url: " ++ url)
+            Err (Http.Constants.urlErrorMessage url)
 
         Http.Timeout_ ->
-            Err "Timeout"
+            Err Http.Constants.timeoutErrorMessage
 
         Http.NetworkError_ ->
-            Err "Network Error"
+            Err Http.Constants.networkErrorMessage
 
         Http.BadStatus_ metadata body ->
             Ok ( metadata, body )
@@ -225,7 +226,7 @@ responseToJson decoder responseString =
 responseToBytes : Bytes.Decode.Decoder a -> Http.Response Bytes -> Result Http.Error a
 responseToBytes decoder responseBytes =
     resolve
-        (\res -> Result.fromMaybe "Error decoding bytes" (Bytes.Decode.decode decoder res))
+        (\res -> Result.fromMaybe Http.Constants.bytesErrorMessage (Bytes.Decode.decode decoder res))
         responseBytes
 
 

@@ -2,98 +2,25 @@ module Detailed exposing (..)
 
 import Bytes
 import Bytes.Decode
-import Bytes.Encode
-import Constants
-import Dict
 import Expect
 import Http
+import Http.Constants
 import Http.Detailed
 import Json.Decode
 import Test exposing (Test, describe, test)
-
-
-
--- CONSTANTS (test-specific)
--- Generic values
-
-
-badUrl : String
-badUrl =
-    "http://bad-url.com"
-
-
-genericUrl : String
-genericUrl =
-    "https://package.elm-lang.org/packages/jzxhuang/http-extras/latest/"
-
-
-genericHeaders : Dict.Dict String String
-genericHeaders =
-    Dict.singleton "Max-Forwards" "10"
-
-
-
--- Metadata
-
-
-badStatusMetadata : Http.Metadata
-badStatusMetadata =
-    { url = genericUrl, statusCode = 500, statusText = "Internal Server Error", headers = genericHeaders }
-
-
-goodStatusMetadata : Http.Metadata
-goodStatusMetadata =
-    { url = genericUrl, statusCode = 200, statusText = "OK", headers = genericHeaders }
-
-
-
--- Bodies
-
-
-genericGoodStringBody : String
-genericGoodStringBody =
-    "Here is some text in a response body."
-
-
-genericBadStringBody : String
-genericBadStringBody =
-    "A bad body."
-
-
-genericJsonBody : String
-genericJsonBody =
-    "{ \"x\": 3 }"
-
-
-genericBytesBody : Bytes.Bytes
-genericBytesBody =
-    Bytes.Encode.encode (Bytes.Encode.unsignedInt16 Bytes.BE 7)
-
-
-
--- JSON Decoders
-
-
-genericJsonDecoder : Json.Decode.Decoder Int
-genericJsonDecoder =
-    Json.Decode.field "x" Json.Decode.int
-
-
-genericJsonDecoderFail : Json.Decode.Decoder String
-genericJsonDecoderFail =
-    Json.Decode.field "x" Json.Decode.string
+import TestConstants as TC
 
 
 
 -- TRANSFORMERS - TUPLE
 
 
-transformersTupleResponseToString : Test
-transformersTupleResponseToString =
-    describe "Transformers (Tuple): responseToString"
+responseToString : Test
+responseToString =
+    describe "Http.Detailed.responseToString"
         [ test "Bad URL" <|
             \_ ->
-                Expect.equal (Http.Detailed.responseToString (Http.BadUrl_ badUrl)) (Err (Http.Detailed.BadUrl badUrl))
+                Expect.equal (Http.Detailed.responseToString (Http.BadUrl_ TC.genericBadUrl)) (Err (Http.Detailed.BadUrl TC.genericBadUrl))
         , test "Timeout" <|
             \_ ->
                 Expect.equal (Http.Detailed.responseToString Http.Timeout_) (Err Http.Detailed.Timeout)
@@ -103,22 +30,22 @@ transformersTupleResponseToString =
         , test "Bad Status" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToString (Http.BadStatus_ badStatusMetadata genericBadStringBody))
-                    (Err (Http.Detailed.BadStatus badStatusMetadata genericBadStringBody))
+                    (Http.Detailed.responseToString (Http.BadStatus_ TC.badStatusMetadata TC.genericBadStringBody))
+                    (Err (Http.Detailed.BadStatus TC.badStatusMetadata TC.genericBadStringBody))
         , test "Good Status" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToString (Http.GoodStatus_ goodStatusMetadata genericGoodStringBody))
-                    (Ok ( goodStatusMetadata, genericGoodStringBody ))
+                    (Http.Detailed.responseToString (Http.GoodStatus_ TC.goodStatusMetadata TC.genericGoodStringBody))
+                    (Ok ( TC.goodStatusMetadata, TC.genericGoodStringBody ))
         ]
 
 
-transformersTupleResponseToJson : Test
-transformersTupleResponseToJson =
-    describe "Transformers (Tuple): responseToJson"
+responseToJson : Test
+responseToJson =
+    describe "Http.Detailed.responseToJson"
         [ test "Bad URL" <|
             \_ ->
-                Expect.equal (Http.Detailed.responseToJson Json.Decode.int (Http.BadUrl_ badUrl)) (Err (Http.Detailed.BadUrl badUrl))
+                Expect.equal (Http.Detailed.responseToJson Json.Decode.int (Http.BadUrl_ TC.genericBadUrl)) (Err (Http.Detailed.BadUrl TC.genericBadUrl))
         , test "Timeout" <|
             \_ ->
                 Expect.equal (Http.Detailed.responseToJson Json.Decode.int Http.Timeout_) (Err Http.Detailed.Timeout)
@@ -128,60 +55,57 @@ transformersTupleResponseToJson =
         , test "Bad Status" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToJson Json.Decode.int (Http.BadStatus_ badStatusMetadata genericBadStringBody))
-                    (Err (Http.Detailed.BadStatus badStatusMetadata genericBadStringBody))
+                    (Http.Detailed.responseToJson Json.Decode.int (Http.BadStatus_ TC.badStatusMetadata TC.genericBadStringBody))
+                    (Err (Http.Detailed.BadStatus TC.badStatusMetadata TC.genericBadStringBody))
 
         -- Various types of cases for good status based on JSON decoding
         , test "Good Status - JSON Decoding Failed - Invalid JSON" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToJson Json.Decode.int (Http.GoodStatus_ goodStatusMetadata genericGoodStringBody))
-                    (Err (Http.Detailed.BadBody goodStatusMetadata genericGoodStringBody "Problem with the given value:\n\n\"Here is some text in a response body.\"\n\nThis is not valid JSON! Unexpected token H in JSON at position 0"))
+                    (Http.Detailed.responseToJson Json.Decode.int (Http.GoodStatus_ TC.goodStatusMetadata TC.genericGoodStringBody))
+                    (Err (Http.Detailed.BadBody TC.goodStatusMetadata TC.genericGoodStringBody "Problem with the given value:\n\n\"Here is some text in a response body.\"\n\nThis is not valid JSON! Unexpected token H in JSON at position 0"))
         , test "Good Status - JSON Decoding Failed" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToJson genericJsonDecoderFail (Http.GoodStatus_ goodStatusMetadata genericJsonBody))
-                    (Err (Http.Detailed.BadBody goodStatusMetadata genericJsonBody "Problem with the value at json.x:\n\n    3\n\nExpecting a STRING"))
+                    (Http.Detailed.responseToJson TC.genericJsonDecoderFail (Http.GoodStatus_ TC.goodStatusMetadata TC.genericJsonBody))
+                    (Err (Http.Detailed.BadBody TC.goodStatusMetadata TC.genericJsonBody "Problem with the value at json.x:\n\n    3\n\nExpecting a STRING"))
         , test "Good Status - JSON Decoding Successful" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToJson genericJsonDecoder (Http.GoodStatus_ goodStatusMetadata genericJsonBody))
-                    (Ok ( goodStatusMetadata, 3 ))
+                    (Http.Detailed.responseToJson TC.genericJsonDecoder (Http.GoodStatus_ TC.goodStatusMetadata TC.genericJsonBody))
+                    (Ok ( TC.goodStatusMetadata, 3 ))
         ]
 
 
-transformersTupleResponseToBytes : Test
-transformersTupleResponseToBytes =
-    describe "Transformers (Tuple): responseToBytes"
+responseToBytes : Test
+responseToBytes =
+    describe "Http.Detailed.responseToBytes"
         [ test "Bad URL" <|
             \_ ->
-                Expect.equal (Http.Detailed.responseToBytes (Bytes.Decode.unsignedInt16 Bytes.BE) (Http.BadUrl_ badUrl)) (Err (Http.Detailed.BadUrl badUrl))
+                Expect.equal (Http.Detailed.responseToBytes TC.genericBytesDecoder (Http.BadUrl_ TC.genericBadUrl)) (Err (Http.Detailed.BadUrl TC.genericBadUrl))
         , test "Timeout" <|
             \_ ->
-                Expect.equal (Http.Detailed.responseToBytes (Bytes.Decode.unsignedInt16 Bytes.BE) Http.Timeout_) (Err Http.Detailed.Timeout)
+                Expect.equal (Http.Detailed.responseToBytes TC.genericBytesDecoder Http.Timeout_) (Err Http.Detailed.Timeout)
         , test "Network Error" <|
             \_ ->
-                Expect.equal (Http.Detailed.responseToBytes (Bytes.Decode.unsignedInt16 Bytes.BE) Http.NetworkError_) (Err Http.Detailed.NetworkError)
+                Expect.equal (Http.Detailed.responseToBytes TC.genericBytesDecoder Http.NetworkError_) (Err Http.Detailed.NetworkError)
         , test "Bad Status" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToBytes (Bytes.Decode.unsignedInt16 Bytes.BE) (Http.BadStatus_ badStatusMetadata genericBytesBody))
-                    (Err (Http.Detailed.BadStatus badStatusMetadata genericBytesBody))
+                    (Http.Detailed.responseToBytes TC.genericBytesDecoder (Http.BadStatus_ TC.badStatusMetadata TC.genericBytesBody))
+                    (Err (Http.Detailed.BadStatus TC.badStatusMetadata TC.genericBytesBody))
 
         -- Various types of cases for good status based on JSON decoding
-        -- Can be fuzzed?
         , test "Good Status - Bytes Decoding Failed" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToBytes (Bytes.Decode.float64 Bytes.BE) (Http.GoodStatus_ goodStatusMetadata genericBytesBody))
-                    (Err (Http.Detailed.BadBody goodStatusMetadata genericBytesBody Constants.bytesErrorMessage))
-
-        -- Can be fuzzed?
+                    (Http.Detailed.responseToBytes (Bytes.Decode.float64 Bytes.BE) (Http.GoodStatus_ TC.goodStatusMetadata TC.genericBytesBody))
+                    (Err (Http.Detailed.BadBody TC.goodStatusMetadata TC.genericBytesBody Http.Constants.bytesErrorMessage))
         , test "Good Status - Bytes Decoding Successful" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToBytes (Bytes.Decode.unsignedInt16 Bytes.BE) (Http.GoodStatus_ goodStatusMetadata genericBytesBody))
-                    (Ok ( goodStatusMetadata, 7 ))
+                    (Http.Detailed.responseToBytes TC.genericBytesDecoder (Http.GoodStatus_ TC.goodStatusMetadata TC.genericBytesBody))
+                    (Ok ( TC.goodStatusMetadata, TC.genericBytesIntValue ))
         ]
 
 
@@ -189,12 +113,12 @@ transformersTupleResponseToBytes =
 -- TRANSFORMERS - RECORD
 
 
-transformersRecordResponseToString : Test
-transformersRecordResponseToString =
-    describe "Transformers (Record): responseToString"
+responseToStringRecord : Test
+responseToStringRecord =
+    describe "Http.Detailed.responseToStringRecord"
         [ test "Bad URL" <|
             \_ ->
-                Expect.equal (Http.Detailed.responseToStringRecord (Http.BadUrl_ badUrl)) (Err (Http.Detailed.BadUrl badUrl))
+                Expect.equal (Http.Detailed.responseToStringRecord (Http.BadUrl_ TC.genericBadUrl)) (Err (Http.Detailed.BadUrl TC.genericBadUrl))
         , test "Timeout" <|
             \_ ->
                 Expect.equal (Http.Detailed.responseToStringRecord Http.Timeout_) (Err Http.Detailed.Timeout)
@@ -204,22 +128,22 @@ transformersRecordResponseToString =
         , test "Bad Status" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToStringRecord (Http.BadStatus_ badStatusMetadata genericBadStringBody))
-                    (Err (Http.Detailed.BadStatus badStatusMetadata genericBadStringBody))
+                    (Http.Detailed.responseToStringRecord (Http.BadStatus_ TC.badStatusMetadata TC.genericBadStringBody))
+                    (Err (Http.Detailed.BadStatus TC.badStatusMetadata TC.genericBadStringBody))
         , test "Good Status" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToStringRecord (Http.GoodStatus_ goodStatusMetadata genericGoodStringBody))
-                    (Ok (Http.Detailed.Success goodStatusMetadata genericGoodStringBody))
+                    (Http.Detailed.responseToStringRecord (Http.GoodStatus_ TC.goodStatusMetadata TC.genericGoodStringBody))
+                    (Ok (Http.Detailed.Success TC.goodStatusMetadata TC.genericGoodStringBody))
         ]
 
 
-transformersRecordResponseToJson : Test
-transformersRecordResponseToJson =
-    describe "Transformers (Record): responseToJson"
+responseToJsonRecord : Test
+responseToJsonRecord =
+    describe "Http.Detailed.responseToJsonRecord"
         [ test "Bad URL" <|
             \_ ->
-                Expect.equal (Http.Detailed.responseToJsonRecord Json.Decode.int (Http.BadUrl_ badUrl)) (Err (Http.Detailed.BadUrl badUrl))
+                Expect.equal (Http.Detailed.responseToJsonRecord Json.Decode.int (Http.BadUrl_ TC.genericBadUrl)) (Err (Http.Detailed.BadUrl TC.genericBadUrl))
         , test "Timeout" <|
             \_ ->
                 Expect.equal (Http.Detailed.responseToJsonRecord Json.Decode.int Http.Timeout_) (Err Http.Detailed.Timeout)
@@ -229,60 +153,57 @@ transformersRecordResponseToJson =
         , test "Bad Status" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToJsonRecord Json.Decode.int (Http.BadStatus_ badStatusMetadata genericBadStringBody))
-                    (Err (Http.Detailed.BadStatus badStatusMetadata genericBadStringBody))
+                    (Http.Detailed.responseToJsonRecord Json.Decode.int (Http.BadStatus_ TC.badStatusMetadata TC.genericBadStringBody))
+                    (Err (Http.Detailed.BadStatus TC.badStatusMetadata TC.genericBadStringBody))
 
         -- Various types of cases for good status based on JSON decoding
         , test "Good Status - JSON Decoding Failed - Invalid JSON" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToJsonRecord Json.Decode.int (Http.GoodStatus_ goodStatusMetadata genericGoodStringBody))
-                    (Err (Http.Detailed.BadBody goodStatusMetadata genericGoodStringBody "Problem with the given value:\n\n\"Here is some text in a response body.\"\n\nThis is not valid JSON! Unexpected token H in JSON at position 0"))
+                    (Http.Detailed.responseToJsonRecord Json.Decode.int (Http.GoodStatus_ TC.goodStatusMetadata TC.genericGoodStringBody))
+                    (Err (Http.Detailed.BadBody TC.goodStatusMetadata TC.genericGoodStringBody "Problem with the given value:\n\n\"Here is some text in a response body.\"\n\nThis is not valid JSON! Unexpected token H in JSON at position 0"))
         , test "Good Status - JSON Decoding Failed" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToJsonRecord genericJsonDecoderFail (Http.GoodStatus_ goodStatusMetadata genericJsonBody))
-                    (Err (Http.Detailed.BadBody goodStatusMetadata genericJsonBody "Problem with the value at json.x:\n\n    3\n\nExpecting a STRING"))
+                    (Http.Detailed.responseToJsonRecord TC.genericJsonDecoderFail (Http.GoodStatus_ TC.goodStatusMetadata TC.genericJsonBody))
+                    (Err (Http.Detailed.BadBody TC.goodStatusMetadata TC.genericJsonBody "Problem with the value at json.x:\n\n    3\n\nExpecting a STRING"))
         , test "Good Status - JSON Decoding Successful" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToJsonRecord genericJsonDecoder (Http.GoodStatus_ goodStatusMetadata genericJsonBody))
-                    (Ok (Http.Detailed.Success goodStatusMetadata 3))
+                    (Http.Detailed.responseToJsonRecord TC.genericJsonDecoder (Http.GoodStatus_ TC.goodStatusMetadata TC.genericJsonBody))
+                    (Ok (Http.Detailed.Success TC.goodStatusMetadata 3))
         ]
 
 
-transformersRecordResponseToBytes : Test
-transformersRecordResponseToBytes =
-    describe "Transformers (Record): responseToBytes"
+responseToBytesRecord : Test
+responseToBytesRecord =
+    describe "Http.Detailed.responseToBytesRecord"
         [ test "Bad URL" <|
             \_ ->
-                Expect.equal (Http.Detailed.responseToBytesRecord (Bytes.Decode.unsignedInt16 Bytes.BE) (Http.BadUrl_ badUrl)) (Err (Http.Detailed.BadUrl badUrl))
+                Expect.equal (Http.Detailed.responseToBytesRecord TC.genericBytesDecoder (Http.BadUrl_ TC.genericBadUrl)) (Err (Http.Detailed.BadUrl TC.genericBadUrl))
         , test "Timeout" <|
             \_ ->
-                Expect.equal (Http.Detailed.responseToBytesRecord (Bytes.Decode.unsignedInt16 Bytes.BE) Http.Timeout_) (Err Http.Detailed.Timeout)
+                Expect.equal (Http.Detailed.responseToBytesRecord TC.genericBytesDecoder Http.Timeout_) (Err Http.Detailed.Timeout)
         , test "Network Error" <|
             \_ ->
-                Expect.equal (Http.Detailed.responseToBytesRecord (Bytes.Decode.unsignedInt16 Bytes.BE) Http.NetworkError_) (Err Http.Detailed.NetworkError)
+                Expect.equal (Http.Detailed.responseToBytesRecord TC.genericBytesDecoder Http.NetworkError_) (Err Http.Detailed.NetworkError)
         , test "Bad Status" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToBytesRecord (Bytes.Decode.unsignedInt16 Bytes.BE) (Http.BadStatus_ badStatusMetadata genericBytesBody))
-                    (Err (Http.Detailed.BadStatus badStatusMetadata genericBytesBody))
+                    (Http.Detailed.responseToBytesRecord TC.genericBytesDecoder (Http.BadStatus_ TC.badStatusMetadata TC.genericBytesBody))
+                    (Err (Http.Detailed.BadStatus TC.badStatusMetadata TC.genericBytesBody))
 
         -- Various types of cases for good status based on JSON decoding
-        -- Can be fuzzed?
         , test "Good Status - Bytes Decoding Failed" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToBytesRecord (Bytes.Decode.float64 Bytes.BE) (Http.GoodStatus_ goodStatusMetadata genericBytesBody))
-                    (Err (Http.Detailed.BadBody goodStatusMetadata genericBytesBody Constants.bytesErrorMessage))
-
-        -- Can be fuzzed?
+                    (Http.Detailed.responseToBytesRecord (Bytes.Decode.float64 Bytes.BE) (Http.GoodStatus_ TC.goodStatusMetadata TC.genericBytesBody))
+                    (Err (Http.Detailed.BadBody TC.goodStatusMetadata TC.genericBytesBody Http.Constants.bytesErrorMessage))
         , test "Good Status - Bytes Decoding Successful" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToBytesRecord (Bytes.Decode.unsignedInt16 Bytes.BE) (Http.GoodStatus_ goodStatusMetadata genericBytesBody))
-                    (Ok (Http.Detailed.Success goodStatusMetadata 7))
+                    (Http.Detailed.responseToBytesRecord TC.genericBytesDecoder (Http.GoodStatus_ TC.goodStatusMetadata TC.genericBytesBody))
+                    (Ok (Http.Detailed.Success TC.goodStatusMetadata TC.genericBytesIntValue))
         ]
 
 
@@ -290,12 +211,12 @@ transformersRecordResponseToBytes =
 -- WHATEVER
 
 
-transformersResponseToWhatever : Test
-transformersResponseToWhatever =
-    describe "Transformers: responseToWhatever"
+responseToWhatever : Test
+responseToWhatever =
+    describe "Http.Detailed.responseToWhatever"
         [ test "Bad URL" <|
             \_ ->
-                Expect.equal (Http.Detailed.responseToWhatever (Http.BadUrl_ badUrl)) (Err (Http.Detailed.BadUrl badUrl))
+                Expect.equal (Http.Detailed.responseToWhatever (Http.BadUrl_ TC.genericBadUrl)) (Err (Http.Detailed.BadUrl TC.genericBadUrl))
         , test "Timeout" <|
             \_ ->
                 Expect.equal (Http.Detailed.responseToWhatever Http.Timeout_) (Err Http.Detailed.Timeout)
@@ -305,11 +226,11 @@ transformersResponseToWhatever =
         , test "Bad Status" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToWhatever (Http.BadStatus_ badStatusMetadata genericBytesBody))
-                    (Err (Http.Detailed.BadStatus badStatusMetadata genericBytesBody))
+                    (Http.Detailed.responseToWhatever (Http.BadStatus_ TC.badStatusMetadata TC.genericBytesBody))
+                    (Err (Http.Detailed.BadStatus TC.badStatusMetadata TC.genericBytesBody))
         , test "Good Status" <|
             \_ ->
                 Expect.equal
-                    (Http.Detailed.responseToWhatever (Http.GoodStatus_ goodStatusMetadata genericBytesBody))
+                    (Http.Detailed.responseToWhatever (Http.GoodStatus_ TC.goodStatusMetadata TC.genericBytesBody))
                     (Ok ())
         ]

@@ -138,8 +138,8 @@ Use this with [`Mock`](../Http-Mock) to mock a request with a detailed response!
 
 import Bytes exposing (Bytes)
 import Bytes.Decode
-import Constants
 import Http
+import Http.Constants
 import Json.Decode
 
 
@@ -343,7 +343,7 @@ responseToBytes : Bytes.Decode.Decoder a -> Http.Response Bytes -> Result (Error
 responseToBytes decoder responseBytes =
     resolve
         (\( metadata, body ) ->
-            Result.fromMaybe Constants.bytesErrorMessage
+            Result.fromMaybe Http.Constants.bytesErrorMessage
                 (Bytes.Decode.decode (Bytes.Decode.map (\res -> ( metadata, res )) decoder) body)
         )
         responseBytes
@@ -379,7 +379,7 @@ responseToBytesRecord : Bytes.Decode.Decoder a -> Http.Response Bytes -> Result 
 responseToBytesRecord decoder responseBytes =
     resolve
         (\( metadata, body ) ->
-            Result.fromMaybe Constants.bytesErrorMessage
+            Result.fromMaybe Http.Constants.bytesErrorMessage
                 (Bytes.Decode.decode (Bytes.Decode.map (\res -> Success metadata res) decoder) body)
         )
         responseBytes
